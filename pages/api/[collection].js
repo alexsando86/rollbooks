@@ -2,6 +2,8 @@ import connectToDatabase from '../../lib/mongodb';
 import mongoose from 'mongoose';
 import dayjs from 'dayjs';
 
+
+
 // 범용 데이터 모델 정의
 const getModel = (collectionName) => {
   const Schema = new mongoose.Schema({
@@ -21,16 +23,25 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const db = await connectToDatabase();
-      const { name, email } = req.body;
-      const newData = new Model({ name, email });
+      const {id,  name, email } = req.body;
+      const newData = new Model({ id, name, email });
       await newData.save();
       res.status(201).json({ 
         message: '데이터 저장 성공',
+        // data: {
+        //   name: newData.name,
+        //   email: newData.email,
+        //   createdAt: dayjs(newData.createdAt).format('YYYY-MM-DD-HH:mm'),
+        //   updatedAt: dayjs(newData.updatedAt).format('YYYY-MM-DD-HH:mm')
+        // }
         data: {
-          name: newData.name,
-          email: newData.email,
-          createdAt: dayjs(newData.createdAt).format('YYYY-MM-DD-HH:mm'),
-          updatedAt: dayjs(newData.updatedAt).format('YYYY-MM-DD-HH:mm')
+          [req.body.id]: {
+            id,
+            name: newData.name,
+            email: newData.email,
+            createdAt: dayjs(newData.createdAt).format('YYYY-MM-DD-HH:mm'),
+            updatedAt: dayjs(newData.updatedAt).format('YYYY-MM-DD-HH:mm')
+          }
         }
       });
     } catch (error) {
@@ -44,10 +55,12 @@ export default async function handler(req, res) {
       res.status(200).json({ 
         message: '데이터 조회 성공',
         data: data.map(item => ({
-          name: item.name,
-          email: item.email,
-          createdAt: dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm'),
-          updatedAt: dayjs(item.updatedAt).format('YYYY-MM-DD-HH:mm')
+          [item.name]: {
+            name: item.name,
+            email: item.email,
+            createdAt: dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm'),
+            updatedAt: dayjs(item.updatedAt).format('YYYY-MM-DD-HH:mm')
+          }
         }))
       });
     } catch (error) {

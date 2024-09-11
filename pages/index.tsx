@@ -1,8 +1,8 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import * as dayjs from 'dayjs'
+import { useEffect, useState } from 'react';
 import { Box, Button, Input } from '@chakra-ui/react'
 
 export default function Home() {
+  const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -16,12 +16,13 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ id, name, email }),
     });
 
     const result = await res.json();
     if (res.ok) {
       setMessage('데이터 저장 성공!');
+      setId('');
       setName('');
       setEmail('');
     } else {
@@ -42,14 +43,14 @@ export default function Home() {
     };
 
     fetchData();
-  }, [data]);
+  }, [setData]);
 
   if(!data) return;
-  
+
   return (
     <div>
       {
-        data.map((list, index) => {
+        data.map((list:{id: string; name: string; email:string; createdAt: string}, index) => {
           return (
             <div key={`${list.id}-${index}`} style={{marginBottom:'20px'}}>
               <div>{list.name}</div>
@@ -62,9 +63,10 @@ export default function Home() {
       
       
       <form onSubmit={handleSubmit}>
+        <Box><Input type="text" placeholder='id' value={id} onChange={(e) => setId(e.target.value)}  /></Box>
         <Box><Input type="text" placeholder='name' value={name} onChange={(e) => setName(e.target.value)}  /></Box>
         <Box><Input type="email"  placeholder='email' value={email} onChange={(e) => setEmail(e.target.value)} /></Box>
-        <Button colorScheme='blue'>출근</Button>
+        <Button colorScheme='blue' type="submit">출근</Button>
       </form>
         
       <div>{message}</div>
