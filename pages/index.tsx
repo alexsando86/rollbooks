@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import * as dayjs from 'dayjs'
+import { Box, Button, Input } from '@chakra-ui/react'
 
 export default function Home() {
   const [name, setName] = useState('');
@@ -61,9 +62,9 @@ export default function Home() {
       
       
       <form onSubmit={handleSubmit}>
-        <div><input type="text" placeholder='name' value={name} onChange={(e) => setName(e.target.value)} className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" /></div>
-        <div><input type="email"  placeholder='email' value={email} onChange={(e) => setEmail(e.target.value)} className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" /></div>
-        <button type="submit">출근</button>
+        <Box><Input type="text" placeholder='name' value={name} onChange={(e) => setName(e.target.value)}  /></Box>
+        <Box><Input type="email"  placeholder='email' value={email} onChange={(e) => setEmail(e.target.value)} /></Box>
+        <Button colorScheme='blue'>출근</Button>
       </form>
         
       <div>{message}</div>
