@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 // 범용 데이터 모델 정의
 const getModel = (collectionName) => {
   const Schema = new mongoose.Schema({
+    id: String,
     name: String,
     email: String,
     createdAt: { type: Date, default: Date.now },
