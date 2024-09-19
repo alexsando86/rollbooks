@@ -9,9 +9,7 @@ const getModel = (collectionName) => {
   const Schema = new mongoose.Schema({
     id: String,
     name: String,
-    email: String,
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
+    email: String
   });
 
   return mongoose.models[collectionName] || mongoose.model(collectionName, Schema);
@@ -20,6 +18,7 @@ const getModel = (collectionName) => {
 export default async function handler(req, res) {
   const { collection } = req.query; // URL 파라미터에서 컬렉션 이름 가져오기
   const Model = getModel(collection);
+  const serverTime = dayjs().format('YYYY-MM-DD-HH:mm');
 
   if (req.method === 'POST') {
     try {
@@ -27,23 +26,24 @@ export default async function handler(req, res) {
       const {id,  name, email } = req.body;
       const newData = new Model({ id, name, email });
       await newData.save();
+      console.log('newData', newData)
       res.status(201).json({ 
         message: '데이터 저장 성공',
-        // data: {
-        //   name: newData.name,
-        //   email: newData.email,
-        //   createdAt: dayjs(newData.createdAt).format('YYYY-MM-DD-HH:mm'),
-        //   updatedAt: dayjs(newData.updatedAt).format('YYYY-MM-DD-HH:mm')
-        // }
-        data: {
-          [req.body.id]: {
-            id,
-            name: newData.name,
-            email: newData.email,
-            createdAt: dayjs(newData.createdAt).format('YYYY-MM-DD-HH:mm'),
-            updatedAt: dayjs(newData.updatedAt).format('YYYY-MM-DD-HH:mm')
+        serverTime,
+        data: [
+          {
+            name: name,
+            email: email,
+            year: dayjs(newData.year).format('YYYY'),
+            month: dayjs(newData.month).format('MM'),
+            date: [
+              {
+                today: serverTime
+              }
+            ]
           }
-        }
+        ]
+      
       });
     } catch (error) {
       console.error(error);
@@ -52,16 +52,15 @@ export default async function handler(req, res) {
   } else if (req.method === 'GET') {
     try {
       const db = await connectToDatabase();
-      const data = await Model.find({});
+      const modelData = await Model.find({});
+      
       res.status(200).json({ 
         message: '데이터 조회 성공',
-        data: data.map(item => ({
-          [item.name]: {
-            name: item.name,
-            email: item.email,
-            createdAt: dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm'),
-            updatedAt: dayjs(item.updatedAt).format('YYYY-MM-DD-HH:mm')
-          }
+        serverTime,
+        data: modelData.map((item) => ({
+          id: item.id,
+          name: item.name,
+          email: item.email
         }))
       });
     } catch (error) {
