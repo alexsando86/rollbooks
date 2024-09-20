@@ -2,66 +2,89 @@ import connectToDatabase from '../../lib/mongodb';
 import mongoose from 'mongoose';
 import dayjs from 'dayjs';
 
-
-
 // 범용 데이터 모델 정의
 const getModel = (collectionName) => {
   const Schema = new mongoose.Schema({
-    id: String,
     name: String,
-    email: String
+    email: String,
+    createdAt: {
+      type: Date,
+      default: Date.now, // 서버 시간으로 자동 저장
+    },
+    month: {
+      type: String, // 저장되는 달 (예: '2024-09')
+      required: true,
+    },
   });
 
-  return mongoose.models[collectionName] || mongoose.model(collectionName, Schema);
+  return (
+    mongoose.models[collectionName] || mongoose.model(collectionName, Schema)
+  );
 };
 
 export default async function handler(req, res) {
   const { collection } = req.query; // URL 파라미터에서 컬렉션 이름 가져오기
   const Model = getModel(collection);
-  const serverTime = dayjs().format('YYYY-MM-DD-HH:mm');
 
   if (req.method === 'POST') {
     try {
       const db = await connectToDatabase();
-      const {id,  name, email } = req.body;
-      const newData = new Model({ id, name, email });
+      const { name, email } = req.body;
+
+      // 현재 서버 시간을 기준으로 달(month)을 계산
+      const currentMonth = dayjs().format('YYYY-MM'); // '2024-09' 형식
+
+      // 새로운 문서를 DB에 저장
+      const newData = new Model({
+        name,
+        email,
+        createdAt: new Date(), // 현재 서버 시간 저장
+        month: currentMonth,
+      });
+
       await newData.save();
-      console.log('newData', newData)
-      res.status(201).json({ 
+
+      // 저장된 createdAt 값을 yyyy-mm-dd-hh:mm 형식으로 변환
+      const formattedCreatedAt = dayjs(newData.createdAt).format(
+        'YYYY-MM-DD-HH:mm'
+      );
+
+      console.log('newData', newData);
+
+      res.status(201).json({
         message: '데이터 저장 성공',
-        serverTime,
         data: [
           {
             name: name,
             email: email,
-            year: dayjs(newData.year).format('YYYY'),
-            month: dayjs(newData.month).format('MM'),
-            date: [
-              {
-                today: serverTime
-              }
-            ]
-          }
-        ]
-      
+            month: newData.month,
+            createdAt: formattedCreatedAt,
+          },
+        ],
       });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: '데이터 저장 실패' });
     }
-  } else if (req.method === 'GET') {
+  }
+
+  if (req.method === 'GET') {
     try {
       const db = await connectToDatabase();
       const modelData = await Model.find({});
-      
-      res.status(200).json({ 
+
+      // 데이터를 클라이언트로 응답 (서버 시간 포함)
+      const responseData = modelData.map((doc) => ({
+        id: doc._id,
+        name: doc.name,
+        email: doc.email,
+        month: doc.month,
+        createdAt: dayjs(doc.createdAt).format('YYYY-MM-DD-HH:mm'), // 서버 시간을 원하는 형식으로 변환
+      }));
+
+      res.status(200).json({
         message: '데이터 조회 성공',
-        serverTime,
-        data: modelData.map((item) => ({
-          id: item.id,
-          name: item.name,
-          email: item.email
-        }))
+        data: responseData,
       });
     } catch (error) {
       console.error(error);
