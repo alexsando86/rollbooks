@@ -8,28 +8,31 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const [datas, setDatas] = useState<any>();
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e: { preventDefault: () => void }) => {
+      e.preventDefault();
 
-    const res = await fetch(`/api/datas`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id, name, email }),
-    });
+      const res = await fetch(`/api/datas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, name, email }),
+      });
 
-    const result = await res.json();
-    if (res.ok) {
-      setMessage('데이터 저장 성공!');
-      setId('');
-      setName('');
-      setEmail('');
-      setDatas(result);
-    } else {
-      setMessage('데이터 저장 실패: ' + result.message);
-    }
-  };
+      const result = await res.json();
+      if (res.ok) {
+        setMessage('데이터 저장 성공!');
+        setId('');
+        setName('');
+        setEmail('');
+        setDatas(result);
+      } else {
+        setMessage('데이터 저장 실패: ' + result.message);
+      }
+    },
+    []
+  );
 
   const fetchData = async () => {
     const res = await fetch(`api/datas`);
