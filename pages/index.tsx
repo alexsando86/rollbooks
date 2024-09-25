@@ -1,23 +1,25 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Box, Button, Input } from '@chakra-ui/react';
+import dayjs from 'dayjs';
 
 export default function Home() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [datas, setDatas] = useState<any>();
+
+  const today = dayjs(new Date()).format('YYYY-MM-DD');
 
   const handleSubmit = useCallback(
     async (e: { preventDefault: () => void }) => {
       e.preventDefault();
 
-      const res = await fetch(`/api/datas`, {
+      const res = await fetch(`/api/${today}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, name, email }),
+        body: JSON.stringify({ id, name }),
       });
 
       const result = await res.json();
@@ -25,7 +27,6 @@ export default function Home() {
         setMessage('데이터 저장 성공!');
         setId('');
         setName('');
-        setEmail('');
         setDatas(result);
       } else {
         setMessage('데이터 저장 실패: ' + result.message);
@@ -57,7 +58,6 @@ export default function Home() {
         return (
           <Box key={index} borderBottom="1px solid #ccc" pb={2}>
             <Box>name: {data.name}</Box>
-            <Box>email: {data.email}</Box>
             <Box key={index}>출근시간: {data.createdAt}</Box>
           </Box>
         );
@@ -80,22 +80,10 @@ export default function Home() {
           <Box>
             <Input
               type="text"
-              placeholder="name"
+              placeholder="사번"
               size="md"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              w="100%"
-              border="1px solid #efefef"
-              m={2}
-              p={2}
-            />
-          </Box>
-          <Box>
-            <Input
-              type="email"
-              placeholder="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               w="100%"
               border="1px solid #efefef"
               m={2}
