@@ -1,20 +1,21 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# WEB개발팀 출석 check
 
-## Getting Started
+## 초기 셋팅하기
 
 First, run the development server:
 
 ```bash
+# pnpm 설치
+sudo npm i -g pnpm
+
+# dependency 설치
+pnpm install
+
+# 프로젝트 실행
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 보기: [http://localhost:8000](http://localhost:8000)
 
 You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
