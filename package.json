@@ -6,6 +6,7 @@
     "preinstall": "npx only-allow pnpm",
     "dev": "export PORT=8000 && next dev",
     "build": "next build",
+    "export": "next export",
     "start": "next start",
     "lint": "next lint",
     "deploy": "pnpm run build && pnpm run export && gh-pages -d out",
