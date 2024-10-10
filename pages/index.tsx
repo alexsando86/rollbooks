@@ -1,14 +1,38 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Box, Button, Input } from '@chakra-ui/react';
 import dayjs from 'dayjs';
+import { useRouter } from 'next/router';
 
 export default function Home() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
-  const [datas, setDatas] = useState<any>();
+  const [datas, setDatas] = useState<any>({ data: [] });
 
   const today = dayjs(new Date()).format('YYYY-MM-DD');
+  const time = dayjs(new Date()).format('HH:mm:ss');
+  const router = useRouter();
+
+  const addEntry = (entry: {
+    id: string;
+    name: string;
+    date: string;
+    time: string;
+  }) => {
+    const existingData = localStorage.getItem('ssgMember');
+    const newEntry = { ...entry, createdAt: today }; // 새로 추가할 데이터 객체
+
+    let updatedData;
+    if (existingData) {
+      const parsedData = JSON.parse(existingData);
+      updatedData = [newEntry, ...parsedData]; // 새로운 데이터를 맨 앞에 추가
+    } else {
+      updatedData = [newEntry]; // 기존 데이터가 없으면 새 배열 생성
+    }
+
+    // updatedData를 localStorage에 저장
+    localStorage.setItem('ssgMember', JSON.stringify(updatedData));
+  };
 
   const handleSubmit = useCallback(
     async (e: { preventDefault: () => void }) => {
@@ -19,7 +43,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, name }),
+        body: JSON.stringify({ id, name, today, time }),
       });
 
       const result = await res.json();
@@ -27,12 +51,16 @@ export default function Home() {
         setMessage('데이터 저장 성공!');
         setId('');
         setName('');
-        setDatas(result);
+
+        // localStorage에 ssgMember 업데이트
+        addEntry({ id, name, date: today, time });
+
+        router.push('/ui/admin');
       } else {
         setMessage('데이터 저장 실패: ' + result.message);
       }
     },
-    []
+    [id, name, today, time]
   );
 
   const fetchData = async () => {
@@ -54,21 +82,21 @@ export default function Home() {
 
   return (
     <Box p={4}>
-      {datas.data?.map((data: any, index: any) => {
+      {/* {datas.data?.map((data: any, index: any) => {
         return (
           <Box key={index} borderBottom="1px solid #ccc" pb={2}>
             <Box>name: {data.name}</Box>
             <Box key={index}>출근시간: {data.createdAt}</Box>
           </Box>
         );
-      })}
+      })} */}
 
       <Box py={4}>
         <form onSubmit={handleSubmit}>
           <Box>
             <Input
               type="text"
-              placeholder="id"
+              placeholder="사번"
               value={id}
               onChange={(e) => setId(e.target.value)}
               w="100%"
@@ -80,7 +108,7 @@ export default function Home() {
           <Box>
             <Input
               type="text"
-              placeholder="사번"
+              placeholder="이름"
               size="md"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -91,7 +119,7 @@ export default function Home() {
             />
           </Box>
           <Button colorScheme="blue" type="submit" mt={4} w="full">
-            출근
+            내 출근기록 보기
           </Button>
         </form>
       </Box>
