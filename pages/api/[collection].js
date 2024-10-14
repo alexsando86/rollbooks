@@ -69,6 +69,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
+    console.log('get')
     try {
       const db = await connectToDatabase();
       const modelData = await Model.find({});
