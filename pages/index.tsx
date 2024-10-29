@@ -7,43 +7,20 @@ export default function Home() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
-  const [datas, setDatas] = useState<any>({ data: [] });
+  const [data, setData] = useState<any>({ data: [] });
 
-  const today = dayjs(new Date()).format('YYYY-MM-DD');
-  const time = dayjs(new Date()).format('HH:mm:ss');
-  const router = useRouter();
-
-  const addEntry = (entry: {
-    id: string;
-    name: string;
-    date: string;
-    time: string;
-  }) => {
-    const existingData = localStorage.getItem('ssgMember');
-    const newEntry = { ...entry, createdAt: today }; // 새로 추가할 데이터 객체
-
-    let updatedData;
-    if (existingData) {
-      const parsedData = JSON.parse(existingData);
-      updatedData = [newEntry, ...parsedData]; // 새로운 데이터를 맨 앞에 추가
-    } else {
-      updatedData = [newEntry]; // 기존 데이터가 없으면 새 배열 생성
-    }
-
-    // updatedData를 localStorage에 저장
-    localStorage.setItem('ssgMember', JSON.stringify(updatedData));
-  };
+  const yearMonth = dayjs().format('YYYY-MM');
 
   const handleSubmit = useCallback(
     async (e: { preventDefault: () => void }) => {
       e.preventDefault();
 
-      const res = await fetch(`/api/${today}`, {
+      const res = await fetch(`/api/datas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, name, today, time }),
+        body: JSON.stringify({ id }),
       });
 
       const result = await res.json();
@@ -51,24 +28,22 @@ export default function Home() {
         setMessage('데이터 저장 성공!');
         setId('');
         setName('');
-
-        // localStorage에 ssgMember 업데이트
-        addEntry({ id, name, date: today, time });
-
-        router.push('/ui/admin');
       } else {
         setMessage('데이터 저장 실패: ' + result.message);
       }
     },
-    [id, name, today, time]
+    [id]
   );
 
   const fetchData = async () => {
-    const res = await fetch(`api/datas`);
+    // DB에 yearMonth 데이터가 있을때 조회 가능.
+    // const res = await fetch(`/api/datas?yearMonth=${yearMonth}&id=${184744}`);
+
+    const res = await fetch(`/api/datas?id=${184744}`);
     const result = await res.json();
 
     if (res.ok) {
-      setDatas(result);
+      setData(result);
     } else {
       console.error('데이터 조회 실패:', result.message);
     }
@@ -78,19 +53,10 @@ export default function Home() {
     fetchData();
   }, []);
 
-  if (!datas) return;
+  if (!data) return;
 
   return (
     <Box p={4}>
-      {/* {datas.data?.map((data: any, index: any) => {
-        return (
-          <Box key={index} borderBottom="1px solid #ccc" pb={2}>
-            <Box>name: {data.name}</Box>
-            <Box key={index}>출근시간: {data.createdAt}</Box>
-          </Box>
-        );
-      })} */}
-
       <Box py={4}>
         <form onSubmit={handleSubmit}>
           <Box>
