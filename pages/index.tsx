@@ -1,7 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { Box, Button, Input } from '@chakra-ui/react';
+import { Box, Button, Input, Text } from '@chakra-ui/react';
 import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
 
 export default function Home() {
   const [id, setId] = useState('');
@@ -91,6 +90,12 @@ export default function Home() {
       </Box>
 
       <div>{message}</div>
+
+      {data.id === '184744' && <Text>육선도</Text>}
+      {
+        data.records?.map((item,index) => <Box key={index}>{dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm:ss')}</Box>)
+      }
+     
     </Box>
   );
 }
