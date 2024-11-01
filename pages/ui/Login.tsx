@@ -5,6 +5,7 @@ import { Center, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import { createAdmin } from '@/lib/admin';
+import { createUser } from '@/lib/user';
 
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -46,6 +47,20 @@ const Login = () => {
 
     alert(`설정한 계정 정보: ${adminId}-${adminPassword}`);
     await createAdmin(adminId, adminPassword);
+  };
+
+  const handleClickCreateUser = async () => {
+    const userId = prompt('사번 입력', '');
+    const userPassword = prompt('설정할 비밀번호 입력', '');
+    const userName = prompt('이름 입력', '');
+
+    if (!userId || !userPassword || !userName) {
+      alert('빈값이 있습니다. 다시 입력하세요.');
+      return;
+    }
+
+    alert(`설정한 계정 정보: [${userId}]${userName}`);
+    await createUser(userId, userPassword, userName);
   };
 
   return (
@@ -134,6 +149,19 @@ const Login = () => {
           onClick={handleClickLogin}
         >
           로그인
+        </Center>
+        <Center
+          as="button"
+          w="100%"
+          h="80px"
+          mt="44px"
+          color="white"
+          bgColor="#2F2F2F"
+          fontSize="24px"
+          borderRadius="40px"
+          onClick={handleClickCreateUser}
+        >
+          사용자계정 생성
         </Center>
         <Center
           as="button"
