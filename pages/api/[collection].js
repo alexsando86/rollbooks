@@ -1,10 +1,10 @@
-import connectToDatabase from '../../lib/mongodb';
-import mongoose from 'mongoose';
+import connectToDatabase from '@/lib/mongodb';
+import { Schema, model, models } from 'mongoose';
 import dayjs from 'dayjs';
 
 // 범용 데이터 모델 정의
 const getModel = (collectionName) => {
-  const Schema = new mongoose.Schema({
+  const userInfoSchema = new Schema({
     name: String,
     email: String,
     createdAt: {
@@ -17,9 +17,7 @@ const getModel = (collectionName) => {
     },
   });
 
-  return (
-    mongoose.models[collectionName] || mongoose.model(collectionName, Schema)
-  );
+  return models[collectionName] || model(collectionName, userInfoSchema);
 };
 
 export default async function handler(req, res) {

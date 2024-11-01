@@ -1,8 +1,53 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Center, Flex, Box, Input, Text } from '@chakra-ui/react';
+import axios from 'axios';
+import { Center, Flex, Input, Text } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
+
+import { createAdmin } from '@/lib/admin';
 
 const Login = () => {
+  const [employeeId, setEmployeeId] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const router = useRouter();
+
+  const handleChangeEmployeeId = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setEmployeeId(e.target.value);
+  const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(e.target.value);
+
+  const handleClickLogin = async () => {
+    const userInfo = { employeeId, password };
+
+    const response = await axios.post('/api/auth', userInfo);
+    if (response.status === 200) {
+      //
+    } else {
+      setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
+    }
+
+    // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 그냥 url 예시!
+    // 유저: /page/221244
+    // 관리자: /page/221244/admin
+    router.push('/ui/admin');
+  };
+
+  const handleClickCreateAdmin = async () => {
+    const adminId = prompt('관리자 사번 입력', '');
+    const adminPassword = prompt('설정할 비밀번호 입력', '');
+
+    if (!adminId || !adminPassword) {
+      alert('빈값이 있습니다. 다시 입력하세요.');
+      return;
+    }
+
+    alert(`설정한 계정 정보: ${adminId}-${adminPassword}`);
+    await createAdmin(adminId, adminPassword);
+  };
+
   return (
     <Flex
       pt="calc(100vh/4)"
@@ -49,9 +94,12 @@ const Login = () => {
             w="100%"
             h="84px"
             fontSize="36px"
-            type="text"
             placeholder="112233"
             borderBottom="2px solid #2F2F2F"
+            id="employeeId"
+            name="employeeId"
+            type="text"
+            onChange={handleChangeEmployeeId}
           ></Input>
         </Flex>
         <Flex
@@ -71,6 +119,7 @@ const Login = () => {
             minLength={8}
             required
             borderBottom="2px solid #2F2F2F"
+            onChange={handleChangePassword}
           ></Input>
         </Flex>
         <Center
@@ -82,9 +131,24 @@ const Login = () => {
           bgColor="#2F2F2F"
           fontSize="24px"
           borderRadius="40px"
+          onClick={handleClickLogin}
         >
           로그인
         </Center>
+        <Center
+          as="button"
+          w="100%"
+          h="80px"
+          mt="44px"
+          color="white"
+          bgColor="#2F2F2F"
+          fontSize="24px"
+          borderRadius="40px"
+          onClick={handleClickCreateAdmin}
+        >
+          관리자계정 생성
+        </Center>
+        {errorMsg && <Text>{errorMsg}</Text>}
       </Flex>
     </Flex>
   );
