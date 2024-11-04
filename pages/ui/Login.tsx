@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 
-import axios from 'axios';
 import { Center, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
-import { createAdmin } from '@/lib/admin';
-import { createUser } from '@/lib/user';
+import { useUser } from '@/hooks/useUser';
+
+interface UserProps {
+  employeeId: string;
+  name: string;
+}
 
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -14,21 +17,23 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = useState('');
 
   const router = useRouter();
+  const { createUserMutation, users } = useUser();
 
   const handleChangeEmployeeId = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmployeeId(e.target.value);
+
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
   const handleClickLogin = async () => {
     const userInfo = { employeeId, password };
 
-    const response = await axios.post('/api/auth', userInfo);
-    if (response.status === 200) {
-      //
-    } else {
-      setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
-    }
+    // const response = await axios.post('/api/auth', userInfo);
+    // if (response.status === 200) {
+    //   //
+    // } else {
+    //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
+    // }
 
     // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 그냥 url 예시!
     // 유저: /page/221244
@@ -36,31 +41,46 @@ const Login = () => {
     router.push('/ui/admin');
   };
 
+  // 관리자 계정 생성
   const handleClickCreateAdmin = async () => {
-    const adminId = prompt('관리자 사번 입력', '');
-    const adminPassword = prompt('설정할 비밀번호 입력', '');
-
-    if (!adminId || !adminPassword) {
+    let adminId = prompt('관리자 사번 입력', '');
+    while (!adminId) {
       alert('빈값이 있습니다. 다시 입력하세요.');
-      return;
+      adminId = prompt('관리자 사번 입력', '');
+    }
+
+    let adminPassword = prompt('설정할 비밀번호 입력', '');
+    while (!adminPassword) {
+      alert('빈값이 있습니다. 다시 입력하세요.');
+      adminPassword = prompt('설정할 비밀번호 입력', '');
     }
 
     alert(`설정한 계정 정보: ${adminId}-${adminPassword}`);
-    await createAdmin(adminId, adminPassword);
+    // await createAdmin(adminId, adminPassword);
   };
 
-  const handleClickCreateUser = async () => {
-    const userId = prompt('사번 입력', '');
-    const userPassword = prompt('설정할 비밀번호 입력', '');
-    const userName = prompt('이름 입력', '');
-
-    if (!userId || !userPassword || !userName) {
+  // 사용자 계정 생성
+  const handleClickCreateUser = () => {
+    let userId = prompt('사번 입력', '');
+    while (!userId) {
       alert('빈값이 있습니다. 다시 입력하세요.');
-      return;
+      userId = prompt('사번 입력', '');
+    }
+
+    let userPassword = prompt('설정할 비밀번호 입력', '');
+    while (!userPassword) {
+      alert('빈값이 있습니다. 다시 입력하세요.');
+      userPassword = prompt('설정할 비밀번호 입력', '');
+    }
+
+    let userName = prompt('이름 입력', '');
+    while (!userName) {
+      alert('빈값이 있습니다. 다시 입력하세요.');
+      userName = prompt('이름 입력', '');
     }
 
     alert(`설정한 계정 정보: [${userId}]${userName}`);
-    await createUser(userId, userPassword, userName);
+    createUserMutation.mutate({ userId, userPassword, userName });
   };
 
   return (
@@ -160,7 +180,7 @@ const Login = () => {
           >
             사용자계정 만들기
           </Center>
-          <Center
+          {/* <Center
             as="button"
             color="#AEAEAE"
             fontSize="18px"
@@ -168,9 +188,16 @@ const Login = () => {
             onClick={handleClickCreateAdmin}
           >
             관리자계정 만들기
-          </Center>
+          </Center> */}
         </Flex>
         {errorMsg && <Text>{errorMsg}</Text>}
+        {users &&
+          users.length > 0 &&
+          users.map((user: UserProps) => (
+            <Text key={user.employeeId}>
+              {user.name} ({user.employeeId})
+            </Text>
+          ))}
       </Flex>
     </Flex>
   );
