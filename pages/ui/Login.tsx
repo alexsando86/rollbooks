@@ -150,32 +150,26 @@ const Login = () => {
         >
           로그인
         </Center>
-        <Center
-          as="button"
-          w="100%"
-          h="80px"
-          mt="44px"
-          color="white"
-          bgColor="#2F2F2F"
-          fontSize="24px"
-          borderRadius="40px"
-          onClick={handleClickCreateUser}
-        >
-          사용자계정 생성
-        </Center>
-        <Center
-          as="button"
-          w="100%"
-          h="80px"
-          mt="44px"
-          color="white"
-          bgColor="#2F2F2F"
-          fontSize="24px"
-          borderRadius="40px"
-          onClick={handleClickCreateAdmin}
-        >
-          관리자계정 생성
-        </Center>
+        <Flex mt="20px" justifyContent="space-around">
+          <Center
+            as="button"
+            color="#AEAEAE"
+            fontSize="18px"
+            borderBottom="1px solid #AEAEAE"
+            onClick={handleClickCreateUser}
+          >
+            사용자계정 만들기
+          </Center>
+          <Center
+            as="button"
+            color="#AEAEAE"
+            fontSize="18px"
+            borderBottom="1px solid #AEAEAE"
+            onClick={handleClickCreateAdmin}
+          >
+            관리자계정 만들기
+          </Center>
+        </Flex>
         {errorMsg && <Text>{errorMsg}</Text>}
       </Flex>
     </Flex>
