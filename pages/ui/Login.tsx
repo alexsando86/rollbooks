@@ -26,7 +26,9 @@ const Login = () => {
     setPassword(e.target.value);
 
   const handleClickLogin = async () => {
-    const userInfo = { employeeId, password };
+    // const userInfo = { employeeId, password };
+    alert(`로그인 정보: ${employeeId}`);
+    router.push('/ui/Admin');
 
     // const response = await axios.post('/api/auth', userInfo);
     // if (response.status === 200) {
@@ -35,10 +37,10 @@ const Login = () => {
     //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
     // }
 
-    // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 그냥 url 예시!
+    // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 url 예시
     // 유저: /page/221244
     // 관리자: /page/221244/admin
-    router.push('/ui/admin');
+    // router.push('/ui/admin');
   };
 
   // 관리자 계정 생성
