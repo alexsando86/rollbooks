@@ -92,10 +92,11 @@ export default function Home() {
       <div>{message}</div>
 
       {data.id === '184744' && <Text>육선도</Text>}
-      {
-        data.records?.map((item,index) => <Box key={index}>{dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm:ss')}</Box>)
-      }
-     
+      {data.records?.map((item, index) => (
+        <Box key={index}>
+          {dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm:ss')}
+        </Box>
+      ))}
     </Box>
   );
 }
