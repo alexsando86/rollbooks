@@ -1,12 +1,14 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Box, Button, Input, Text } from '@chakra-ui/react';
 import dayjs from 'dayjs';
+import { useRouter } from 'next/router';
 
 export default function Home() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [data, setData] = useState<any>({ data: [] });
+  const router = useRouter();
 
   const yearMonth = dayjs().format('YYYY-MM');
 
@@ -27,17 +29,20 @@ export default function Home() {
         setMessage('데이터 저장 성공!');
         setId('');
         setName('');
+        router.push(`ui/Admin`);
       } else {
         setMessage('데이터 저장 실패: ' + result.message);
       }
     },
-    [id]
+    [id, name]
   );
+  console.log(`id`, data);
 
   const fetchData = async () => {
     // DB에 yearMonth 데이터가 있을때 조회 가능.
     // const res = await fetch(`/api/datas?yearMonth=${yearMonth}&id=${184744}`);
 
+    // const res = await fetch(`/api/datas?id=${184744}`);
     const res = await fetch(`/api/datas?id=${184744}`);
     const result = await res.json();
 
@@ -50,7 +55,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [id]);
 
   if (!data) return;
 
@@ -92,11 +97,13 @@ export default function Home() {
       <div>{message}</div>
 
       {data.id === '184744' && <Text>육선도</Text>}
-      {data.records?.map((item, index) => (
-        <Box key={index}>
-          {dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm:ss')}
-        </Box>
-      ))}
+      {data.records?.map((item, index) => {
+        return (
+          <Box key={index}>
+            {dayjs(item.createdAt).format('YYYY-MM-DD-HH:mm:ss')}
+          </Box>
+        );
+      })}
     </Box>
   );
 }

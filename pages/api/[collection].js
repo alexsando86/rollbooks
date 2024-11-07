@@ -10,6 +10,7 @@ export default async function handler(req, res) {
 
   // GET 요청: yearMonth와 id를 기반으로 MongoDB에 저장된 현재 데이터 조회
   if (req.method === 'GET') {
+    console.log('get')
     try {
       const data = await collection.findOne({ yearMonth, id }); // yearMonth와 id에 해당하는 데이터 조회
 

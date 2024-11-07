@@ -8,71 +8,127 @@ import {
   Th,
   Td,
   Flex,
+  Select as ChakraSelect,
+  Button as ChakraButton,
+  styled,
 } from '@chakra-ui/react';
+
 import dayjs from 'dayjs';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 export interface AttendanceData {
   id: string;
   name: string;
-  email: string;
   createdAt: string;
-  date: string;
-  time: string;
 }
 
-export default function AdminPage() {
-  const [datas, setDatas] = useState<AttendanceData[]>([]);
+interface IProps {
+  value: string;
+  isFirst?: boolean;
+  isLast?: boolean;
+  bgColor?: string;
+  textColor?: string;
+  isStatus?: boolean; // 상태 셀인지 여부를 나타내는 속성
+}
 
-  const mergeData = (
-    apiData: AttendanceData[],
-    lastEntry: AttendanceData | null,
-    ssgMemberData: AttendanceData[]
-  ) => {
-    let combinedData = [...ssgMemberData];
+// 커스텀 스타일이 적용된 Button
+const CustomButton = styled(ChakraButton, {
+  baseStyle: {
+    height: '30px',
+    color: '#2f2f2f',
+    fontWeight: '600',
+    backgroundColor: '#fff',
+    border: '1px solid #2f2f2f',
+    borderRadius: '24px',
+    _hover: { bg: '#f5f5f5' },
+  },
+});
 
-    // lastEntry가 있으면 추가 (이미 있는 데이터인지 확인)
-    if (lastEntry && !combinedData.some((data) => data.id === lastEntry.id)) {
-      combinedData = [lastEntry, ...combinedData];
-    }
+// 커스텀 스타일이 적용된 Select
+const CustomSelect = styled(ChakraSelect, {
+  baseStyle: {
+    height: '30px',
+    color: '#2f2f2f',
+    fontWeight: '600',
+    backgroundColor: '#fff',
+    border: '1px solid #2f2f2f',
+    borderRadius: '24px',
+    appearance: 'none',
+  },
+});
 
-    // API 데이터를 병합 (중복 제거)
-    apiData.forEach((item) => {
-      if (!combinedData.some((data) => data.id === item.id)) {
-        combinedData.push(item);
-      }
-    });
+const TableCell = ({
+  value,
+  isFirst = false,
+  isLast = false,
+  bgColor = '',
+  textColor = '',
+  isStatus = false,
+}: IProps) => (
+  <Td padding="0">
+    <Box
+      height="60px"
+      my="8px"
+      backgroundColor="#f6f6f6"
+      color="#2f2f2f"
+      borderTopLeftRadius={isFirst ? '16px' : '0'}
+      borderBottomLeftRadius={isFirst ? '16px' : '0'}
+      borderTopRightRadius={isLast ? '16px' : '0'}
+      borderBottomRightRadius={isLast ? '16px' : '0'}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Box
+        width={isStatus ? '100px' : ''}
+        padding="3px 12px"
+        backgroundColor={bgColor}
+        color={textColor}
+        fontWeight={isStatus ? 'bold' : 'normal'}
+        borderRadius={isStatus ? '18px' : '0'}
+      >
+        {value}
+      </Box>
+    </Box>
+  </Td>
+);
 
-    setDatas(combinedData);
-    localStorage.setItem('ssgMember', JSON.stringify(combinedData));
-  };
+export default function AdminPage({}) {
+  const [id, setId] = useState('');
+  const [name, setName] = useState('');
+  // const [data, setData] = useState<AttendanceData[]>([]);
+  // const [id, setId] = useState('');
+  // const [name, setName] = useState('');
+
+  const [data, setData] = useState<any>({ data: [] });
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // 선택된 달을 저장할 상태
+
+  // const id = data.id;
 
   // API에서 데이터 불러오기
   const fetchData = async () => {
-    const res = await fetch('/api/datas');
+    // DB에 yearMonth 데이터가 있을때 조회 가능.
+    // const res = await fetch(`/api/datas?yearMonth=${yearMonth}&id=${184744}`);
+
+    const res = await fetch(`/api/datas?id=${184744}`);
+    // const res = await fetch(url);
     const result = await res.json();
-    return res.ok ? result.data : [];
+
+    if (res.ok) {
+      setData(result);
+    } else {
+      console.error('데이터 조회 실패:', result.message);
+    }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      const ssgMemberStr = localStorage.getItem('ssgMember');
-      const ssgMemberData = ssgMemberStr ? JSON.parse(ssgMemberStr) : [];
-
-      const lastEntryStr = localStorage.getItem('lastEntry');
-      const lastEntry = lastEntryStr ? JSON.parse(lastEntryStr) : null;
-
-      const apiData = await fetchData();
-
-      mergeData(apiData, lastEntry, ssgMemberData);
-
-      if (lastEntry) {
-        localStorage.removeItem('lastEntry');
-      }
-    };
-
-    loadData();
+    fetchData();
   }, []);
+
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMonth(event.target.value);
+  };
 
   // 화, 수, 목 10시 이후면 지각
   const getStatus = (date: string, time: string) => {
@@ -111,7 +167,7 @@ export default function AdminPage() {
           </Box>
           <Box lineHeight="1.2">
             <Text fontSize="20px" fontWeight="bold">
-              이름 (사번)
+              이름 ({data.id})
             </Text>
             <Text mt="6px" fontSize="12px" color="#8D94A4">
               WEB개발팀
@@ -136,12 +192,59 @@ export default function AdminPage() {
           출석관리
         </Text>
         <Box flex="1">
-          <Box height="140px">필터 추가</Box>
+          <Box>
+            <Box>
+              <Text>날짜 필터</Text>
+              <Flex mt="5px" gap="0 8px">
+                <CustomSelect
+                  variant="unstyled"
+                  placeholder="Month"
+                  mt={2}
+                  onChange={handleMonthChange}
+                >
+                  {[...Array(12).keys()].map((_, i) => {
+                    const month = dayjs()
+                      .startOf('year')
+                      .add(i, 'month')
+                      .format('YYYY-MM');
+                    return (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
+                    );
+                  })}
+                </CustomSelect>
+                <CustomButton>WEEK</CustomButton>
+                <CustomButton>DAY</CustomButton>
+                <CustomButton onClick={() => setSelectedMonth(null)}>
+                  초기화
+                </CustomButton>
+              </Flex>
+            </Box>
+            <Box mt="20px">
+              <Text>목록 정렬 필터</Text>
+              <Flex mt="5px" gap="0 8px">
+                <CustomButton>시간 오름차순</CustomButton>
+                <CustomButton>시간 내림차순</CustomButton>
+                <CustomButton>이름 오름차순</CustomButton>
+                <CustomButton>이름 내림차순</CustomButton>
+              </Flex>
+            </Box>
+            <Box mt="20px">
+              <Text>조건 필터</Text>
+              <Flex mt="5px" gap="0 8px">
+                <CustomButton>전체보기</CustomButton>
+                <CustomButton>지각자</CustomButton>
+                <CustomButton>휴가자</CustomButton>
+              </Flex>
+            </Box>
+          </Box>
           <Table
-            color="#2f2f2f"
             width="100%"
+            mt="40px"
             textAlign="center"
             fontSize="20px"
+            color="#2f2f2f"
           >
             <Thead>
               <Tr>
@@ -156,69 +259,28 @@ export default function AdminPage() {
               </Tr>
             </Thead>
             <Tbody>
-              {datas.map((data, index) => {
-                const status = getStatus(data.date, data.time);
+              {data?.records?.map((item: AttendanceData, index) => {
+                const date = dayjs(item.createdAt).format('YYYY-MM-DD');
+                const time = dayjs(item.createdAt).format('HH:mm:ss');
+                const status = getStatus(date, time);
                 const style = statusStyles[status] || {};
+
                 return (
                   <Tr key={index}>
-                    <Td padding="0">
-                      <Box
-                        height="60px"
-                        my="8px"
-                        backgroundColor="#f6f6f6"
-                        borderTopLeftRadius="16px"
-                        borderBottomLeftRadius="16px"
-                      >
-                        {data.id}
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        {data.name}
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        {data.date}
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        {data.time}
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        09:00
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        -
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box height="60px" my="8px" backgroundColor="#f6f6f6">
-                        17:00
-                      </Box>
-                    </Td>
-                    <Td padding="0">
-                      <Box
-                        height="60px"
-                        my="8px"
-                        backgroundColor="#f6f6f6"
-                        borderTopRightRadius="16px"
-                        borderBottomRightRadius="16px"
-                      >
-                        <Box
-                          backgroundColor={style.bgColor}
-                          color={style.textColor}
-                          borderRadius="18px"
-                        >
-                          {status}
-                        </Box>
-                      </Box>
-                    </Td>
+                    <TableCell value={data.id} isFirst />
+                    <TableCell value={data.name} />
+                    <TableCell value={date} />
+                    <TableCell value={time} />
+                    <TableCell value="09:00" />
+                    <TableCell value="-" />
+                    <TableCell value="17:00" />
+                    <TableCell
+                      value={status}
+                      bgColor={style.bgColor}
+                      textColor={style.textColor}
+                      isLast
+                      isStatus
+                    />
                   </Tr>
                 );
               })}
