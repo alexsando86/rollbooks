@@ -8,13 +8,9 @@ import {
   Th,
   Td,
   Flex,
-  Select as ChakraSelect,
   Button as ChakraButton,
-  styled,
 } from '@chakra-ui/react';
-
 import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 export interface AttendanceData {
@@ -23,41 +19,52 @@ export interface AttendanceData {
   createdAt: string;
 }
 
+const statusStyles = {
+  출근: { bgColor: '#73fa5138', textColor: '#2BD600' },
+  지각: { bgColor: '#FF313105', textColor: '#FF3131' },
+};
+
+// 공통 스타일 정의
+const commonStyles = {
+  height: '30px',
+  color: '#2f2f2f',
+  fontWeight: '600',
+  backgroundColor: '#fff',
+  border: '1px solid #2f2f2f',
+  borderRadius: '24px',
+  _hover: { bg: '#f5f5f5' },
+};
+
+// CustomButton 컴포넌트
+const CustomButton = (props: any) => (
+  <ChakraButton {...commonStyles} {...props} />
+);
+
+// CustomSelect 컴포넌트
+const CustomSelect = (props: any) => (
+  <Box position="relative">
+    <Box
+      as="select"
+      px="16px"
+      textAlign="center"
+      cursor="pointer"
+      appearance="none"
+      {...commonStyles}
+      {...props}
+    />
+  </Box>
+);
+
 interface IProps {
   value: string;
   isFirst?: boolean;
   isLast?: boolean;
   bgColor?: string;
   textColor?: string;
-  isStatus?: boolean; // 상태 셀인지 여부를 나타내는 속성
+  isStatus?: boolean;
 }
 
-// 커스텀 스타일이 적용된 Button
-const CustomButton = styled(ChakraButton, {
-  baseStyle: {
-    height: '30px',
-    color: '#2f2f2f',
-    fontWeight: '600',
-    backgroundColor: '#fff',
-    border: '1px solid #2f2f2f',
-    borderRadius: '24px',
-    _hover: { bg: '#f5f5f5' },
-  },
-});
-
-// 커스텀 스타일이 적용된 Select
-const CustomSelect = styled(ChakraSelect, {
-  baseStyle: {
-    height: '30px',
-    color: '#2f2f2f',
-    fontWeight: '600',
-    backgroundColor: '#fff',
-    border: '1px solid #2f2f2f',
-    borderRadius: '24px',
-    appearance: 'none',
-  },
-});
-
+// TableCell 컴포넌트
 const TableCell = ({
   value,
   isFirst = false,
@@ -94,35 +101,21 @@ const TableCell = ({
   </Td>
 );
 
-export default function AdminPage({}) {
-  const [id, setId] = useState('');
-  const [name, setName] = useState('');
-  // const [data, setData] = useState<AttendanceData[]>([]);
-  // const [id, setId] = useState('');
-  // const [name, setName] = useState('');
-
+export default function AdminPage() {
   const [data, setData] = useState<any>({ data: [] });
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // 선택된 달을 저장할 상태
-
-  // const id = data.id;
-
-  // API에서 데이터 불러오기
-  const fetchData = async () => {
-    // DB에 yearMonth 데이터가 있을때 조회 가능.
-    // const res = await fetch(`/api/datas?yearMonth=${yearMonth}&id=${184744}`);
-
-    const res = await fetch(`/api/datas?id=${184744}`);
-    // const res = await fetch(url);
-    const result = await res.json();
-
-    if (res.ok) {
-      setData(result);
-    } else {
-      console.error('데이터 조회 실패:', result.message);
-    }
-  };
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/datas?id=${184744}`);
+        const result = await res.json();
+        setData(result);
+      } catch (error) {
+        console.error('데이터 조회 실패:', error);
+      }
+    };
+
     fetchData();
   }, []);
 
@@ -130,7 +123,6 @@ export default function AdminPage({}) {
     setSelectedMonth(event.target.value);
   };
 
-  // 화, 수, 목 10시 이후면 지각
   const getStatus = (date: string, time: string) => {
     const dayOfWeek = dayjs(date).day();
     const checkTime = dayjs(time, 'HH:mm');
@@ -141,16 +133,13 @@ export default function AdminPage({}) {
       : '출근';
   };
 
-  const statusStyles = {
-    출근: {
-      bgColor: '#73fa5138',
-      textColor: '#2BD600',
-    },
-    지각: {
-      bgColor: '#FF313105',
-      textColor: '#FF3131',
-    },
-  };
+  // 선택된 월에 따라 데이터를 필터링
+  const filteredRecords = selectedMonth
+    ? data.records.filter(
+        (item: AttendanceData) =>
+          dayjs(item.createdAt).format('YYYY-MM') === selectedMonth
+      )
+    : data.records || [];
 
   return (
     <Box p={20}>
@@ -176,116 +165,111 @@ export default function AdminPage({}) {
         </Flex>
       </Flex>
       <Flex>
-        <Text
-          fontSize="2xl"
-          fontWeight="bold"
-          as="h1"
-          _after={{
-            content: `""`,
-            mx: '10px',
-            display: 'inline-block',
-            width: '1px',
-            height: '20px',
-            backgroundColor: '#2f2f2f',
-          }}
-        >
-          출석관리
-        </Text>
+        <Box flex="none" position="relative" width="230px">
+          <Text fontSize="5xl" fontWeight="bold" as="h1">
+            출석관리
+          </Text>
+        </Box>
         <Box flex="1">
           <Box>
-            <Box>
-              <Text>날짜 필터</Text>
-              <Flex mt="5px" gap="0 8px">
-                <CustomSelect
-                  variant="unstyled"
-                  placeholder="Month"
-                  mt={2}
-                  onChange={handleMonthChange}
-                >
-                  {[...Array(12).keys()].map((_, i) => {
-                    const month = dayjs()
-                      .startOf('year')
-                      .add(i, 'month')
-                      .format('YYYY-MM');
-                    return (
-                      <option key={month} value={month}>
-                        {month}
-                      </option>
-                    );
-                  })}
-                </CustomSelect>
-                <CustomButton>WEEK</CustomButton>
-                <CustomButton>DAY</CustomButton>
-                <CustomButton onClick={() => setSelectedMonth(null)}>
-                  초기화
-                </CustomButton>
-              </Flex>
-            </Box>
-            <Box mt="20px">
-              <Text>목록 정렬 필터</Text>
-              <Flex mt="5px" gap="0 8px">
-                <CustomButton>시간 오름차순</CustomButton>
-                <CustomButton>시간 내림차순</CustomButton>
-                <CustomButton>이름 오름차순</CustomButton>
-                <CustomButton>이름 내림차순</CustomButton>
-              </Flex>
-            </Box>
-            <Box mt="20px">
-              <Text>조건 필터</Text>
-              <Flex mt="5px" gap="0 8px">
-                <CustomButton>전체보기</CustomButton>
-                <CustomButton>지각자</CustomButton>
-                <CustomButton>휴가자</CustomButton>
-              </Flex>
-            </Box>
+            <Text>날짜 필터</Text>
+            <Flex mt="5px" gap="0 8px">
+              <CustomSelect
+                onChange={handleMonthChange}
+                defaultValue="placeholder"
+              >
+                <option value="placeholder" disabled hidden>
+                  Month
+                </option>
+                {[...Array(12).keys()].map((_, i) => {
+                  const month = dayjs()
+                    .startOf('year')
+                    .add(i, 'month')
+                    .format('YYYY-MM');
+                  return (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  );
+                })}
+              </CustomSelect>
+              <CustomButton>WEEK</CustomButton>
+              <CustomButton>DAY</CustomButton>
+              <CustomButton onClick={() => setSelectedMonth(null)}>
+                초기화
+              </CustomButton>
+            </Flex>
           </Box>
-          <Table
-            width="100%"
-            mt="40px"
-            textAlign="center"
-            fontSize="20px"
-            color="#2f2f2f"
-          >
-            <Thead>
-              <Tr>
-                <Th>사번</Th>
-                <Th>이름</Th>
-                <Th>날짜</Th>
-                <Th>출근시간</Th>
-                <Th>예상출근시간</Th>
-                <Th>퇴근시간</Th>
-                <Th>예상퇴근시간</Th>
-                <Th>상태</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {data?.records?.map((item: AttendanceData, index) => {
-                const date = dayjs(item.createdAt).format('YYYY-MM-DD');
-                const time = dayjs(item.createdAt).format('HH:mm:ss');
-                const status = getStatus(date, time);
-                const style = statusStyles[status] || {};
+          <Box mt="20px">
+            <Text>목록 정렬 필터</Text>
+            <Flex mt="5px" gap="0 8px">
+              <CustomButton>시간 오름차순</CustomButton>
+              <CustomButton>시간 내림차순</CustomButton>
+              <CustomButton>이름 오름차순</CustomButton>
+              <CustomButton>이름 내림차순</CustomButton>
+            </Flex>
+          </Box>
+          <Box mt="20px">
+            <Text>조건 필터</Text>
+            <Flex mt="5px" gap="0 8px">
+              <CustomButton>전체보기</CustomButton>
+              <CustomButton>지각자</CustomButton>
+              <CustomButton>휴가자</CustomButton>
+            </Flex>
+          </Box>
+          {filteredRecords.length > 0 ? (
+            <Table
+              width="100%"
+              mt="40px"
+              textAlign="center"
+              fontSize="20px"
+              color="#2f2f2f"
+            >
+              <Thead>
+                <Tr>
+                  <Th>사번</Th>
+                  <Th>이름</Th>
+                  <Th>날짜</Th>
+                  <Th>출근시간</Th>
+                  <Th>예상출근시간</Th>
+                  <Th>퇴근시간</Th>
+                  <Th>예상퇴근시간</Th>
+                  <Th>상태</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {filteredRecords.map((item: AttendanceData, index) => {
+                  const date = dayjs(item.createdAt).format('YYYY-MM-DD');
+                  const time = dayjs(item.createdAt).format('HH:mm:ss');
+                  const status = getStatus(date, time);
+                  const style = statusStyles[status] || {};
 
-                return (
-                  <Tr key={index}>
-                    <TableCell value={data.id} isFirst />
-                    <TableCell value={data.name} />
-                    <TableCell value={date} />
-                    <TableCell value={time} />
-                    <TableCell value="09:00" />
-                    <TableCell value="-" />
-                    <TableCell value="17:00" />
-                    <TableCell
-                      value={status}
-                      bgColor={style.bgColor}
-                      textColor={style.textColor}
-                      isLast
-                      isStatus
-                    />
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
+                  return (
+                    <Tr key={index}>
+                      <TableCell value={data.id} isFirst />
+                      <TableCell value={data.name} />
+                      <TableCell value={date} />
+                      <TableCell value={time} />
+                      <TableCell value="09:00" />
+                      <TableCell value="-" />
+                      <TableCell value="17:00" />
+                      <TableCell
+                        value={status}
+                        bgColor={style.bgColor}
+                        textColor={style.textColor}
+                        isLast
+                        isStatus
+                      />
+                    </Tr>
+                  );
+                })}
+              </Tbody>
+            </Table>
+          ) : (
+            <Text mt="40px" fontSize="xl" color="#2f2f2f" textAlign="center">
+              선택한 월에 해당하는 데이터가 없습니다.
+            </Text>
+          )}
         </Box>
       </Flex>
     </Box>
