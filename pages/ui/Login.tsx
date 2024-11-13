@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Center, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
@@ -25,23 +25,46 @@ const Login = () => {
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
-  const handleClickLogin = async () => {
-    // const userInfo = { employeeId, password };
-    alert(`로그인 정보: ${employeeId}`);
-    router.push('/ui/Admin');
+  const handleClickLogin = useCallback(
+    async (e: { preventDefault: () => void }) => {
+      e.preventDefault();
+      // const userInfo = { employeeId, password };
+      alert(`로그인 정보: ${employeeId}`);
 
-    // const response = await axios.post('/api/auth', userInfo);
-    // if (response.status === 200) {
-    //   //
-    // } else {
-    //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
-    // }
+      const res = await fetch(`/api/datas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: employeeId }),
+      });
 
-    // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 url 예시
-    // 유저: /page/221244
-    // 관리자: /page/221244/admin
-    // router.push('/ui/admin');
-  };
+      const result = await res.json();
+      if (res.ok) {
+        console.log('데이터 저장 성공!');
+        console.log(result);
+        setEmployeeId('');
+        router.push(`/ui/Admin`);
+      } else {
+        console.log('데이터 저장 실패: ' + result.message);
+      }
+
+      // router.push('/ui/Admin');
+
+      // const response = await axios.post('/api/auth', userInfo);
+      // if (response.status === 200) {
+      //   //
+      // } else {
+      //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
+      // }
+
+      // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 url 예시
+      // 유저: /page/221244
+      // 관리자: /page/221244/admin
+      // router.push('/ui/admin');
+    },
+    [employeeId]
+  );
 
   // 관리자 계정 생성
   const handleClickCreateAdmin = async () => {
@@ -123,55 +146,57 @@ const Login = () => {
             Check!
           </Text>
         </Flex>
-        <Flex data-label="input box" alignItems="center" color="#2F2F2F">
-          <Text w="130px" fontSize="24px" fontWeight="400">
-            사번
-          </Text>
-          <Input
+        <form onSubmit={handleClickLogin}>
+          <Flex data-label="input box" alignItems="center" color="#2F2F2F">
+            <Text w="130px" fontSize="24px" fontWeight="400">
+              사번
+            </Text>
+            <Input
+              w="100%"
+              h="84px"
+              fontSize="36px"
+              placeholder="112233"
+              borderBottom="2px solid #2F2F2F"
+              id="employeeId"
+              name="employeeId"
+              type="text"
+              onChange={handleChangeEmployeeId}
+            ></Input>
+          </Flex>
+          <Flex
+            data-label="input box"
+            mt="28px"
+            alignItems="center"
+            color="#2F2F2F"
+          >
+            <Text w="130px" fontSize="24px" fontWeight="400">
+              비밀번호
+            </Text>
+            <Input
+              w="100%"
+              h="84px"
+              fontSize="36px"
+              type="password"
+              minLength={8}
+              required
+              borderBottom="2px solid #2F2F2F"
+              onChange={handleChangePassword}
+            ></Input>
+          </Flex>
+          <Center
+            as="button"
             w="100%"
-            h="84px"
-            fontSize="36px"
-            placeholder="112233"
-            borderBottom="2px solid #2F2F2F"
-            id="employeeId"
-            name="employeeId"
-            type="text"
-            onChange={handleChangeEmployeeId}
-          ></Input>
-        </Flex>
-        <Flex
-          data-label="input box"
-          mt="28px"
-          alignItems="center"
-          color="#2F2F2F"
-        >
-          <Text w="130px" fontSize="24px" fontWeight="400">
-            비밀번호
-          </Text>
-          <Input
-            w="100%"
-            h="84px"
-            fontSize="36px"
-            type="password"
-            minLength={8}
-            required
-            borderBottom="2px solid #2F2F2F"
-            onChange={handleChangePassword}
-          ></Input>
-        </Flex>
-        <Center
-          as="button"
-          w="100%"
-          h="80px"
-          mt="44px"
-          color="white"
-          bgColor="#2F2F2F"
-          fontSize="24px"
-          borderRadius="40px"
-          onClick={handleClickLogin}
-        >
-          로그인
-        </Center>
+            h="80px"
+            mt="44px"
+            color="white"
+            bgColor="#2F2F2F"
+            fontSize="24px"
+            borderRadius="40px"
+            // onClick={handleClickLogin}
+          >
+            로그인
+          </Center>
+        </form>
         <Flex mt="20px" justifyContent="space-around">
           <Center
             as="button"
