@@ -44,7 +44,7 @@ const Login = () => {
         console.log('데이터 저장 성공!');
         console.log(result);
         setEmployeeId('');
-        router.push(`/ui/Admin`);
+        router.push(`/ui/Admin?employeeId=${employeeId}`);
       } else {
         console.log('데이터 저장 실패: ' + result.message);
       }

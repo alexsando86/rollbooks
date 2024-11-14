@@ -11,6 +11,7 @@ import {
   Button as ChakraButton,
 } from '@chakra-ui/react';
 import dayjs from 'dayjs';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 export interface AttendanceData {
@@ -72,24 +73,21 @@ const TableCell = ({
   bgColor = '',
   textColor = '',
   isStatus = false,
-}: IProps) => (
+}) => (
   <Td padding="0">
     <Box
       height="60px"
       my="8px"
       backgroundColor="#f6f6f6"
       color="#2f2f2f"
-      borderTopLeftRadius={isFirst ? '16px' : '0'}
-      borderBottomLeftRadius={isFirst ? '16px' : '0'}
-      borderTopRightRadius={isLast ? '16px' : '0'}
-      borderBottomRightRadius={isLast ? '16px' : '0'}
+      borderRadius={`${isFirst ? '16px 0 0 16px' : ''} ${isLast ? '0 16px 16px 0' : ''}`}
       display="flex"
       alignItems="center"
       justifyContent="center"
     >
       <Box
         width={isStatus ? '100px' : ''}
-        padding="3px 12px"
+        px="3"
         backgroundColor={bgColor}
         color={textColor}
         fontWeight={isStatus ? 'bold' : 'normal'}
@@ -104,11 +102,13 @@ const TableCell = ({
 export default function AdminPage() {
   const [data, setData] = useState<any>({ data: [] });
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const router = useRouter();
+  const { employeeId } = router.query;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/datas?id=${184744}`);
+        const res = await fetch(`/api/datas?id=${employeeId}`);
         const result = await res.json();
         setData(result);
       } catch (error) {
@@ -125,8 +125,8 @@ export default function AdminPage() {
 
   const getStatus = (date: string, time: string) => {
     const dayOfWeek = dayjs(date).day();
-    const checkTime = dayjs(time, 'HH:mm');
-    const limitTime = dayjs('10:00', 'HH:mm');
+    const checkTime = dayjs(time, 'HH:mm:ss');
+    const limitTime = dayjs('10:00', 'HH:mm:ss');
 
     return dayOfWeek >= 2 && dayOfWeek <= 4 && checkTime.isAfter(limitTime)
       ? '지각'
@@ -135,7 +135,7 @@ export default function AdminPage() {
 
   // 선택된 월에 따라 데이터를 필터링
   const filteredRecords = selectedMonth
-    ? data.records.filter(
+    ? data.records?.filter(
         (item: AttendanceData) =>
           dayjs(item.createdAt).format('YYYY-MM') === selectedMonth
       )
@@ -156,7 +156,7 @@ export default function AdminPage() {
           </Box>
           <Box lineHeight="1.2">
             <Text fontSize="20px" fontWeight="bold">
-              이름 ({data.id})
+              이름 ({employeeId})
             </Text>
             <Text mt="6px" fontSize="12px" color="#8D94A4">
               WEB개발팀
@@ -193,14 +193,14 @@ export default function AdminPage() {
                   );
                 })}
               </CustomSelect>
-              <CustomButton>WEEK</CustomButton>
-              <CustomButton>DAY</CustomButton>
+              {/* <CustomButton>WEEK</CustomButton>
+              <CustomButton>DAY</CustomButton> */}
               <CustomButton onClick={() => setSelectedMonth(null)}>
                 초기화
               </CustomButton>
             </Flex>
           </Box>
-          <Box mt="20px">
+          {/* <Box mt="20px">
             <Text>목록 정렬 필터</Text>
             <Flex mt="5px" gap="0 8px">
               <CustomButton>시간 오름차순</CustomButton>
@@ -216,8 +216,8 @@ export default function AdminPage() {
               <CustomButton>지각자</CustomButton>
               <CustomButton>휴가자</CustomButton>
             </Flex>
-          </Box>
-          {filteredRecords.length > 0 ? (
+          </Box> */}
+          {filteredRecords?.length > 0 ? (
             <Table
               width="100%"
               mt="40px"
@@ -238,7 +238,7 @@ export default function AdminPage() {
                 </Tr>
               </Thead>
               <Tbody>
-                {filteredRecords.map((item: AttendanceData, index) => {
+                {filteredRecords.map((item: AttendanceData, index: number) => {
                   const date = dayjs(item.createdAt).format('YYYY-MM-DD');
                   const time = dayjs(item.createdAt).format('HH:mm:ss');
                   const status = getStatus(date, time);
@@ -246,13 +246,13 @@ export default function AdminPage() {
 
                   return (
                     <Tr key={index}>
-                      <TableCell value={data.id} isFirst />
+                      <TableCell value={employeeId} isFirst />
                       <TableCell value={data.name} />
                       <TableCell value={date} />
                       <TableCell value={time} />
-                      <TableCell value="09:00" />
+                      <TableCell value="09:00:00" />
                       <TableCell value="-" />
-                      <TableCell value="17:00" />
+                      <TableCell value="17:00:00" />
                       <TableCell
                         value={status}
                         bgColor={style.bgColor}
