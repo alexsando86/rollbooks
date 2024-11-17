@@ -4,15 +4,15 @@ import bcrypt from 'bcryptjs';
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const { employeeId, password, name, access } = req.body;
+      const { employeeId, password, name, access = 0 } = req.body;
 
       // Connect to MongoDB
       const client = await clientPromise;
       const db = client.db('mongodbnode'); // 카테고리
-      const collection = db.collection('users'); // 폴더명
+      //  db.collection('users'): 폴더명
 
       // Check if user exists
-      const existingUser = await collection.findOne({ employeeId });
+      const existingUser = await db.collection('users').findOne({ employeeId });
       if (existingUser) {
         return res
           .status(409)
@@ -29,10 +29,12 @@ export default async function handler(req, res) {
         createdAt: new Date(),
       };
 
-      const result = await collection.insertOne(newUser);
+      const result = await db.collection('users').insertOne(newUser);
       console.log('result: ', result);
 
-      const insertedUser = await collection.findOne({ _id: result.insertedId });
+      const insertedUser = await db
+        .collection('users')
+        .findOne({ _id: result.insertedId });
       console.log(insertedUser);
 
       const USER = access === -1 ? '관리자' : '사용자';

@@ -4,6 +4,7 @@ import { Center, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import { useUser } from '@/hooks/useUser';
+import { createUser } from '@/lib/userService';
 
 interface UserProps {
   employeeId: string;
@@ -66,46 +67,31 @@ const Login = () => {
     [employeeId]
   );
 
-  // 관리자 계정 생성
-  const handleClickCreateAdmin = async () => {
-    let adminId = prompt('관리자 사번 입력', '');
-    while (!adminId) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      adminId = prompt('관리자 사번 입력', '');
-    }
+  // 사용자/관리자 계정 생성
+  const handleClickCreateUser = (access: number) => {
+    const USER = access === -1 ? '관리자' : '사용자';
 
-    let adminPassword = prompt('설정할 비밀번호 입력', '');
-    while (!adminPassword) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      adminPassword = prompt('설정할 비밀번호 입력', '');
-    }
-
-    alert(`설정한 계정 정보: ${adminId}-${adminPassword}`);
-    // await createAdmin(adminId, adminPassword);
-  };
-
-  // 사용자 계정 생성
-  const handleClickCreateUser = () => {
-    let userId = prompt('사번 입력', '');
-    while (!userId) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      userId = prompt('사번 입력', '');
-    }
+    let userId = prompt(`${USER} 사번 입력`, '');
+    // while (!userId) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userId = prompt(`${USER} 사번 입력`, '');
+    // }
 
     let userPassword = prompt('설정할 비밀번호 입력', '');
-    while (!userPassword) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      userPassword = prompt('설정할 비밀번호 입력', '');
-    }
+    // while (!userPassword) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userPassword = prompt('설정할 비밀번호 입력', '');
+    // }
 
     let userName = prompt('이름 입력', '');
-    while (!userName) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      userName = prompt('이름 입력', '');
-    }
+    // while (!userName) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userName = prompt('이름 입력', '');
+    // }
 
     alert(`설정한 계정 정보: [${userId}]${userName}`);
-    createUserMutation.mutate({ userId, userPassword, userName });
+    // createUserMutation.mutate({ userId, userPassword, userName });
+    createUser({ userId, userPassword, userName, access });
   };
 
   return (
@@ -203,7 +189,7 @@ const Login = () => {
             color="#AEAEAE"
             fontSize="18px"
             borderBottom="1px solid #AEAEAE"
-            onClick={handleClickCreateUser}
+            onClick={() => handleClickCreateUser(0)}
           >
             사용자계정 만들기
           </Center>
@@ -212,7 +198,7 @@ const Login = () => {
             color="#AEAEAE"
             fontSize="18px"
             borderBottom="1px solid #AEAEAE"
-            onClick={handleClickCreateAdmin}
+            onClick={() => handleClickCreateUser(-1)}
           >
             관리자계정 만들기
           </Center> */}
