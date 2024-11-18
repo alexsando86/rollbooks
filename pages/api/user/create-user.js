@@ -5,13 +5,14 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { employeeId, password, name, access = 0 } = req.body;
+      const USER = access === -1 ? '관리자' : '사용자';
 
-      // Connect to MongoDB
+      // MongoDB 연결
       const client = await clientPromise;
       const db = client.db('mongodbnode'); // 카테고리
       //  db.collection('users'): 폴더명
 
-      // Check if user exists
+      // 사번 중복여부 체크
       const existingUser = await db.collection('users').findOne({ employeeId });
       if (existingUser) {
         return res
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
           .json({ message: '해당 사번이 이미 존재합니다.' });
       }
 
-      // Hash password and save user
+      // 비번 암호화
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = {
         employeeId,
@@ -30,17 +31,15 @@ export default async function handler(req, res) {
       };
 
       const result = await db.collection('users').insertOne(newUser);
-      console.log('result: ', result);
-
-      const insertedUser = await db
-        .collection('users')
-        .findOne({ _id: result.insertedId });
-      console.log(insertedUser);
-
-      const USER = access === -1 ? '관리자' : '사용자';
 
       if (result.acknowledged) {
-        return { message: 'User created successfully', user: result.ops[0] };
+        const user = await db
+          .collection('users')
+          .findOne({ _id: result.insertedId });
+
+        return res
+          .status(201)
+          .json({ message: `${USER} 계정이 생성되었습니다.`, user });
       }
 
       res.status(201).json({
@@ -48,7 +47,7 @@ export default async function handler(req, res) {
         user: result.ops[0],
       });
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('계정 생성 실패:', error);
       res.status(500).json({ message: `${USER} 계정 생성에 실패했습니다.` });
     }
   } else {

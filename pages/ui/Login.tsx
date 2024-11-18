@@ -3,7 +3,6 @@ import React, { useCallback, useState } from 'react';
 import { Center, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
-import { useUser } from '@/hooks/useUser';
 import { createUser } from '@/lib/userService';
 
 interface UserProps {
@@ -18,7 +17,6 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = useState('');
 
   const router = useRouter();
-  const { createUserMutation, users } = useUser();
 
   const handleChangeEmployeeId = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmployeeId(e.target.value);
@@ -91,7 +89,12 @@ const Login = () => {
 
     alert(`설정한 계정 정보: [${userId}]${userName}`);
     // createUserMutation.mutate({ userId, userPassword, userName });
-    createUser({ userId, userPassword, userName, access });
+    createUser({
+      employeeId: userId,
+      password: userPassword,
+      name: userName,
+      access,
+    });
   };
 
   return (
@@ -204,13 +207,13 @@ const Login = () => {
           </Center> */}
         </Flex>
         {errorMsg && <Text>{errorMsg}</Text>}
-        {users &&
+        {/* {users &&
           users.length > 0 &&
           users.map((user: UserProps) => (
             <Text key={user.employeeId}>
               {user.name} ({user.employeeId})
             </Text>
-          ))}
+          ))} */}
       </Flex>
     </Flex>
   );
