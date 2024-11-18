@@ -1,16 +1,23 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
-export const createUser = async (data) => {
-  console.log('data: ', data);
-
+export const createUser = async (data: {
+  employeeId: string;
+  password: string;
+  name: string;
+  access: number;
+}): Promise<AxiosResponse<any>> => {
   try {
     const response = await axios.post('/api/user/create-user', data);
     console.log('계정이 생성되었습니다.:', response.data);
-  } catch (error) {
+
+    return response;
+  } catch (error: any) {
     console.error(
       'Error creating user:',
       error.response ? error.response.data : error.message
     );
+
+    throw error;
   }
 };
 
@@ -35,17 +42,4 @@ export const createUser = async (data) => {
 //     console.error('사용자 정보 불러오기 실패:', error);
 //     throw new Error('사용자 정보를 불러오는데 실패했습니다.');
 //   }
-// };
-
-// 사용자계정 생성하기
-// export const createUser = async (data) => {
-//   const response = await fetch('/api/user', {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify(data),
-//   });
-//   if (!response.ok) {
-//     throw new Error('사용자계정 생성에 실패했습니다.');
-//   }
-//   return await response.json();
 // };
