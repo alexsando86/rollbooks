@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
 
-import { Center, Flex, Input, Text } from '@chakra-ui/react';
+import { Center, Fade, Flex, Input, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import { useUser } from '@/hooks/useUser';
+import { useEffect } from 'react';
 
 interface UserProps {
   employeeId: string;
@@ -14,10 +15,10 @@ const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
 
-  const [errorMsg, setErrorMsg] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
 
   const router = useRouter();
-  const { createUserMutation, users } = useUser();
+  const { createUserMutation } = useUser();
 
   const handleChangeEmployeeId = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmployeeId(e.target.value);
@@ -66,47 +67,54 @@ const Login = () => {
     [employeeId]
   );
 
-  // 관리자 계정 생성
-  const handleClickCreateAdmin = async () => {
-    let adminId = prompt('관리자 사번 입력', '');
-    while (!adminId) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      adminId = prompt('관리자 사번 입력', '');
-    }
+  // 사용자/관리자 계정 생성
+  const handleClickCreateUser = (access: number) => {
+    const USER = access === -1 ? '관리자' : '사용자';
 
-    let adminPassword = prompt('설정할 비밀번호 입력', '');
-    while (!adminPassword) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      adminPassword = prompt('설정할 비밀번호 입력', '');
-    }
-
-    alert(`설정한 계정 정보: ${adminId}-${adminPassword}`);
-    // await createAdmin(adminId, adminPassword);
-  };
-
-  // 사용자 계정 생성
-  const handleClickCreateUser = () => {
-    let userId = prompt('사번 입력', '');
-    while (!userId) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      userId = prompt('사번 입력', '');
-    }
+    let userId = prompt(`${USER} 사번 입력`, '');
+    // while (!userId) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userId = prompt(`${USER} 사번 입력`, '');
+    // }
 
     let userPassword = prompt('설정할 비밀번호 입력', '');
-    while (!userPassword) {
-      alert('빈값이 있습니다. 다시 입력하세요.');
-      userPassword = prompt('설정할 비밀번호 입력', '');
-    }
+    // while (!userPassword) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userPassword = prompt('설정할 비밀번호 입력', '');
+    // }
 
     let userName = prompt('이름 입력', '');
-    while (!userName) {
+    // while (!userName) {
+    //   alert('빈값이 있습니다. 다시 입력하세요.');
+    //   userName = prompt('이름 입력', '');
+    // }
+
+    if (!userId || !userPassword || !userName) {
       alert('빈값이 있습니다. 다시 입력하세요.');
-      userName = prompt('이름 입력', '');
+      return;
     }
 
     alert(`설정한 계정 정보: [${userId}]${userName}`);
-    createUserMutation.mutate({ userId, userPassword, userName });
+
+    createUserMutation.mutate({
+      employeeId: userId ?? '',
+      password: userPassword ?? '',
+      name: userName ?? '',
+      access,
+    });
+
+    createUserMutation.isSuccess && setShowMessage(true);
   };
+
+  useEffect(() => {
+    if (showMessage) {
+      const timer = setTimeout(() => {
+        setShowMessage(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showMessage]);
 
   return (
     <Flex
@@ -139,7 +147,12 @@ const Login = () => {
         ></Center>
       </Flex>
       {/* 로그인 부분 */}
-      <Flex flexDirection="column" fontWeight="semibold" letterSpacing="tight">
+      <Flex
+        flexDirection="column"
+        position="relative"
+        fontWeight="semibold"
+        letterSpacing="tight"
+      >
         <Flex mb="174px" fontSize="64px">
           WEB개발팀 출석{' '}
           <Text ml="12px" px="8px" boxShadow="inset 0 -30px 0 #DCF42C">
@@ -203,28 +216,42 @@ const Login = () => {
             color="#AEAEAE"
             fontSize="18px"
             borderBottom="1px solid #AEAEAE"
-            onClick={handleClickCreateUser}
+            onClick={() => handleClickCreateUser(0)}
           >
             사용자계정 만들기
           </Center>
+          {/* 관리자계정 생성시 주석 해제 */}
           {/* <Center
             as="button"
             color="#AEAEAE"
             fontSize="18px"
             borderBottom="1px solid #AEAEAE"
-            onClick={handleClickCreateAdmin}
+            onClick={() => handleClickCreateUser(-1)}
           >
             관리자계정 만들기
           </Center> */}
         </Flex>
-        {errorMsg && <Text>{errorMsg}</Text>}
-        {users &&
-          users.length > 0 &&
-          users.map((user: UserProps) => (
-            <Text key={user.employeeId}>
-              {user.name} ({user.employeeId})
-            </Text>
-          ))}
+        {/* 계정 생성 상태메시지 */}
+        <Center w="100%" position="absolute" bottom="-50px" fontSize="16px">
+          {createUserMutation.isPending ? (
+            <Fade in={showMessage} unmountOnExit>
+              <Text opacity={showMessage ? 1 : 0} transition="opacity 0.5s">
+                ... 계정 생성중
+              </Text>
+            </Fade>
+          ) : (
+            <Fade in={showMessage} unmountOnExit>
+              <Text
+                px={2}
+                borderBottom="6px solid #DCF42C"
+                opacity={showMessage ? 1 : 0}
+                transition="opacity 1s"
+              >
+                계정이 생성되었습니다!
+              </Text>
+            </Fade>
+          )}
+        </Center>
       </Flex>
     </Flex>
   );
