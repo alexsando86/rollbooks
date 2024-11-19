@@ -25,8 +25,6 @@ export const useUser = () => {
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      console.log('data: ', data);
-
       if (data.isLogin) {
         toast({
           title: '로그인 성공',

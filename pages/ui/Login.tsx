@@ -26,7 +26,7 @@ const Login = () => {
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
-  const handleClickLogin = useCallback(
+  const handleClickFormLogin = useCallback(
     async (e: { preventDefault: () => void }) => {
       e.preventDefault();
       // const userInfo = { employeeId, password };
@@ -50,15 +50,6 @@ const Login = () => {
         console.log('데이터 저장 실패: ' + result.message);
       }
 
-      // router.push('/ui/Admin');
-
-      // const response = await axios.post('/api/auth', userInfo);
-      // if (response.status === 200) {
-      //   //
-      // } else {
-      //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
-      // }
-
       // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 url 예시
       // 유저: /page/221244
       // 관리자: /page/221244/admin
@@ -67,7 +58,7 @@ const Login = () => {
     [employeeId]
   );
 
-  const handleClickLogin2 = async () => {
+  const handleClickLogin = async () => {
     const result = await loginMutation.mutateAsync({
       employeeId,
       password,
@@ -173,7 +164,7 @@ const Login = () => {
             Check!
           </Text>
         </Flex>
-        {/* <form onSubmit={handleClickLogin}> */}
+        {/* <form onSubmit={handleClickFormLogin}> */}
         <Flex data-label="input box" alignItems="center" color="#2F2F2F">
           <Text w="130px" fontSize="24px" fontWeight="400">
             사번
@@ -228,7 +219,7 @@ const Login = () => {
           bgColor="#2F2F2F"
           fontSize="24px"
           borderRadius="40px"
-          onClick={handleClickLogin2}
+          onClick={handleClickLogin}
         >
           로그인
         </Center>
