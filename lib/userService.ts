@@ -1,4 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
+import axiosInstance from '@/lib/axiosInstance';
+
+interface LoginResponse {
+  message: string;
+  isLogin: boolean;
+  user: {
+    employeeId: string;
+    name: string;
+    access: number;
+  };
+}
 
 export const createUser = async (data: {
   employeeId: string;
@@ -7,13 +18,30 @@ export const createUser = async (data: {
   access: number;
 }): Promise<AxiosResponse<any>> => {
   try {
-    const response = await axios.post('/api/user/create-user', data);
-    console.log('계정이 생성되었습니다.:', response.data);
+    const response = await axiosInstance.post('/user/create-user', data);
 
     return response;
   } catch (error: any) {
     console.error(
-      'Error creating user:',
+      '(createUser) 계정 생성 실패:',
+      error.response ? error.response.data : error.message
+    );
+
+    throw error;
+  }
+};
+
+export const loginUser = async (data: {
+  employeeId: string;
+  password: string;
+}): Promise<LoginResponse> => {
+  try {
+    const response = await axiosInstance.post('/user/login', data);
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      '(loginUser) 로그인 실패:',
       error.response ? error.response.data : error.message
     );
 
