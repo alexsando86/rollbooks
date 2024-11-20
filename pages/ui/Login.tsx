@@ -18,7 +18,7 @@ const Login = () => {
   const [showMessage, setShowMessage] = useState(false);
 
   const router = useRouter();
-  const { createUserMutation } = useUser();
+  const { createUserMutation, loginMutation } = useUser();
 
   const handleChangeEmployeeId = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmployeeId(e.target.value);
@@ -26,7 +26,7 @@ const Login = () => {
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
-  const handleClickLogin = useCallback(
+  const handleClickFormLogin = useCallback(
     async (e: { preventDefault: () => void }) => {
       e.preventDefault();
       // const userInfo = { employeeId, password };
@@ -50,15 +50,6 @@ const Login = () => {
         console.log('데이터 저장 실패: ' + result.message);
       }
 
-      // router.push('/ui/Admin');
-
-      // const response = await axios.post('/api/auth', userInfo);
-      // if (response.status === 200) {
-      //   //
-      // } else {
-      //   setErrorMsg('잘못된 사번 혹은 비밀번호입니다. 다시 입력해주세요.');
-      // }
-
       // 로그인 성공시 admin 유무에 따라 유저페이지 or 관리자페이지로 이동. 아래는 url 예시
       // 유저: /page/221244
       // 관리자: /page/221244/admin
@@ -66,6 +57,20 @@ const Login = () => {
     },
     [employeeId]
   );
+
+  const handleClickLogin = async () => {
+    const result = await loginMutation.mutateAsync({
+      employeeId,
+      password,
+    });
+
+    if (result.isLogin) {
+      router.push(`/ui/Admin?employeeId=${employeeId}`);
+    }
+
+    setEmployeeId('');
+    setPassword('');
+  };
 
   // 사용자/관리자 계정 생성
   const handleClickCreateUser = (access: number) => {
@@ -159,57 +164,66 @@ const Login = () => {
             Check!
           </Text>
         </Flex>
-        <form onSubmit={handleClickLogin}>
-          <Flex data-label="input box" alignItems="center" color="#2F2F2F">
-            <Text w="130px" fontSize="24px" fontWeight="400">
-              사번
-            </Text>
-            <Input
-              w="100%"
-              h="84px"
-              fontSize="36px"
-              placeholder="112233"
-              borderBottom="2px solid #2F2F2F"
-              id="employeeId"
-              name="employeeId"
-              type="text"
-              onChange={handleChangeEmployeeId}
-            ></Input>
-          </Flex>
-          <Flex
-            data-label="input box"
-            mt="28px"
-            alignItems="center"
-            color="#2F2F2F"
-          >
-            <Text w="130px" fontSize="24px" fontWeight="400">
-              비밀번호
-            </Text>
-            <Input
-              w="100%"
-              h="84px"
-              fontSize="36px"
-              type="password"
-              minLength={8}
-              required
-              borderBottom="2px solid #2F2F2F"
-              onChange={handleChangePassword}
-            ></Input>
-          </Flex>
-          <Center
-            as="button"
+        {/* <form onSubmit={handleClickFormLogin}> */}
+        <Flex data-label="input box" alignItems="center" color="#2F2F2F">
+          <Text w="130px" fontSize="24px" fontWeight="400">
+            사번
+          </Text>
+          <Input
             w="100%"
-            h="80px"
-            mt="44px"
-            color="white"
-            bgColor="#2F2F2F"
-            fontSize="24px"
-            borderRadius="40px"
-            // onClick={handleClickLogin}
-          >
-            로그인
-          </Center>
-        </form>
+            h="84px"
+            fontSize="36px"
+            placeholder="000000"
+            sx={{
+              '::placeholder': {
+                color: '#E9E9E9',
+              },
+            }}
+            borderBottom="2px solid #2F2F2F"
+            id="employeeId"
+            name="employeeId"
+            type="text"
+            value={employeeId}
+            onChange={handleChangeEmployeeId}
+          ></Input>
+        </Flex>
+        <Flex
+          data-label="input box"
+          mt="28px"
+          alignItems="center"
+          color="#2F2F2F"
+        >
+          <Text w="130px" fontSize="24px" fontWeight="400">
+            비밀번호
+          </Text>
+          <Input
+            w="100%"
+            h="84px"
+            fontSize="36px"
+            minLength={8}
+            required
+            borderBottom="2px solid #2F2F2F"
+            id="password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={handleChangePassword}
+          ></Input>
+        </Flex>
+        <Center
+          as="button"
+          w="100%"
+          h="80px"
+          mt="44px"
+          color="white"
+          bgColor="#2F2F2F"
+          fontSize="24px"
+          borderRadius="40px"
+          onClick={handleClickLogin}
+        >
+          로그인
+        </Center>
+        {/* </form> */}
         <Flex mt="20px" justifyContent="space-around">
           <Center
             as="button"

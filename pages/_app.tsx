@@ -6,6 +6,7 @@ import {
   extendBaseTheme,
   theme as chakraTheme,
 } from '@chakra-ui/react';
+import Head from 'next/head';
 
 const { Button } = chakraTheme.components;
 
@@ -19,10 +20,16 @@ const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ChakraBaseProvider theme={theme}>
-        <Component {...pageProps} />
-      </ChakraBaseProvider>
-    </QueryClientProvider>
+    <>
+      <Head>
+        <title>출석췍</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <QueryClientProvider client={queryClient}>
+        <ChakraBaseProvider theme={theme}>
+          <Component {...pageProps} />
+        </ChakraBaseProvider>
+      </QueryClientProvider>
+    </>
   );
 }
