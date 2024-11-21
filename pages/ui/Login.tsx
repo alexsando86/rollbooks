@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-
-import { Center, Fade, Flex, Input, Text } from '@chakra-ui/react';
+import dayjs from 'dayjs';
+import { Center, Fade, Flex, Input, Text, Box } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import { useUser } from '@/hooks/useUser';
@@ -121,6 +121,22 @@ const Login = () => {
     }
   }, [showMessage]);
 
+  // 현재 시간 
+  // TO-DO: 로그인 후 페이지 생성후 시간 리액트 쿼리로 코드 변경 
+  const [currentTime, setCurrentTime] = useState<string>(dayjs().format('HH:mm:ss'));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(dayjs().format('HH:mm:ss'));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!currentTime) {
+    return null;
+  }
+
   return (
     <Flex
       pt="calc(100vh/4)"
@@ -164,6 +180,12 @@ const Login = () => {
             Check!
           </Text>
         </Flex>
+        {/* 현재시간 */}
+        <Box textAlign="center" m="20px 0">
+          <Text fontSize="80px" fontWeight="900" sx={{
+            fontVariantNumeric: 'tabular-nums',
+          }}>{currentTime}</Text>
+        </Box>
         {/* <form onSubmit={handleClickFormLogin}> */}
         <Flex data-label="input box" alignItems="center" color="#2F2F2F">
           <Text w="130px" fontSize="24px" fontWeight="400">
